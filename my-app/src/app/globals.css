@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff; /* Always white */
+  --foreground: #171717; /* Dark text */
+  --card-bg: #f8f9fa;   /* Light gray cards */
+  --card-border: #e5e7eb; /* Light borders */
+  --positive: #10b981;   /* Green for positive values */
+  --negative: #ef4444;   /* Red for negative values */
+  --neutral: #6b7280;    /* Gray for secondary text */
 }
 
 @theme inline {
@@ -12,15 +17,111 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* Removed the dark mode media query entirely to enforce white background */
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  padding: 1rem;
+}
+
+.dashboard-header {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.section-header {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem 0;
+}
+
+.section-description {
+  color: var(--neutral);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.metric-title {
+  font-size: 0.875rem;
+  color: var(--neutral);
+  margin-bottom: 0.25rem;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0.25rem 0;
+}
+
+.metric-change {
+  font-size: 0.75rem;
+}
+
+.metric-change.positive {
+  color: var(--positive);
+}
+
+.metric-change.negative {
+  color: var(--negative);
+}
+
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.invoice-table th, 
+.invoice-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.status-paid {
+  color: var(--positive);
+}
+
+.status-overdue {
+  color: var(--negative);
+}
+
+.sales-chart {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.sales-months {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--neutral);
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: var(--card-border);
+  margin: 1.5rem 0;
 }
