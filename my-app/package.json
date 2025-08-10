@@ -37,8 +37,10 @@
     "react-day-picker": "^9.8.1",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
+    "react-tsparticles": "^2.12.2",
     "recharts": "^3.1.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "tsparticles": "^3.9.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
