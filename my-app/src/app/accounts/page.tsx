@@ -31,7 +31,7 @@ export default function AccountsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Account Management"
+        title="Generating an invoice"
         description="Create and manage shop accounts."
       />
       <div className="grid gap-6 lg:grid-cols-5">

@@ -21,8 +21,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import * as XLSX from 'xlsx'; // <-- for Excel export
 
-// Predefined date ranges matching your screenshot
+// Predefined date ranges
 const predefinedRanges = [
   {
     label: 'Today',
@@ -89,23 +90,22 @@ function formatInputDate(d: Date) {
 
 export default function CustomersPage() {
   const [bills, setBills] = useState([]);
-  const [filteredBills, setFilteredBills] = useState([]); // filtered bills state
+  const [filteredBills, setFilteredBills] = useState([]);
   const [selectedBills, setSelectedBills] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  useEffect(() => {
-    const savedBills = JSON.parse(localStorage.getItem('bills') || '[]');
-    setBills(savedBills);
-    setFilteredBills(savedBills); // show all initially
-  }, []);
-
-  // Date range picker states
   const [showDropdown, setShowDropdown] = useState(false);
   const [rangeLabel, setRangeLabel] = useState('Select Date Range');
   const [customRange, setCustomRange] = useState<{ startDate: string; endDate: string }>({
     startDate: '',
     endDate: '',
   });
+
+  useEffect(() => {
+    const savedBills = JSON.parse(localStorage.getItem('bills') || '[]');
+    setBills(savedBills);
+    setFilteredBills(savedBills);
+  }, []);
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -128,7 +128,6 @@ export default function CustomersPage() {
     setShowDropdown(false);
   };
 
-  // Filter function for date range
   const applyFilter = () => {
     if (!customRange.startDate || !customRange.endDate) {
       alert('Please select a valid date range.');
@@ -146,126 +145,31 @@ export default function CustomersPage() {
     setShowDropdown(false);
   };
 
-  const handlePrint = () => {
-    const printData = bills.filter((bill) => selectedBills.includes(bill.orderId));
-    if (printData.length === 0) {
-      alert('Please select at least one bill to print.');
+  // Export filtered bills to Excel
+  const handleExportExcel = () => {
+    if (!filteredBills.length) {
+      alert('No bills to export.');
       return;
     }
 
-    const invoiceCSS = `
-      <style>
-        body { font-family: sans-serif; font-size: 12px; }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid black; padding: 4px; font-size: 11px; }
-        .noborder td, .noborder th { border: none; }
-        .textCenter { text-align: center; font-size: 14px; font-weight: bold; }
-        .textRight { text-align: right; }
-        .textLeft { text-align: left; }
-        .smallfont { font-size: 11px; }
-      </style>
-    `;
+    const data = filteredBills.map((bill) => ({
+      OrderID: bill.orderId,
+      CustomerName: bill.customer.name,
+      Phone: bill.customer.phone,
+      ItemsCount: bill.items.length,
+      Total: bill.finalTotal.toFixed(2),
+      OrderDate: new Date(bill.date).toLocaleDateString(),
+    }));
 
-    const printWindow = window.open('', '', 'width=900,height=700');
-    printWindow.document.write(`<html><head><title>Invoices</title>${invoiceCSS}</head><body>`);
-
-    printData.forEach((bill) => {
-      let itemsHTML = bill.items
-        .map(
-          (item, idx) => `
-          <tr>
-            <td class="textCenter">${idx + 1}</td>
-            <td>${item.sku || ''}</td>
-            <td>${item.name}</td>
-            <td>${item.hsn || ''}</td>
-            <td>${item.batch || ''}</td>
-            <td>${item.upc || ''}</td>
-            <td class="textCenter">${item.caseQty || 0}</td>
-            <td class="textCenter">${item.unitQty || 0}</td>
-            <td class="textCenter">${(item.caseQty || 0) + (item.unitQty || 0)}</td>
-            <td class="textCenter">${item.free || 0}</td>
-            <td class="textRight">${item.caseMrp || 0}</td>
-            <td class="textRight">${item.rate || item.unitMrp || 0}</td>
-            <td class="textRight">${(item.total || (item.caseQty * item.caseMrp) + (item.unitQty * item.unitMrp)).toFixed(2)}</td>
-            <td class="textCenter">${item.schemePercent || 0}</td>
-            <td class="textCenter">${item.schemeAmt || 0}</td>
-            <td class="textCenter">${item.cdPercent || 0}% (${item.cdAmt || 0})</td>
-            <td class="textRight">${item.taxable || 0}</td>
-            <td class="textCenter">9.00 (${((item.taxable || 0) * 0.09).toFixed(2)})</td>
-            <td class="textCenter">9.00 (${((item.taxable || 0) * 0.09).toFixed(2)})</td>
-            <td class="textCenter">0.00 (0.00)</td>
-            <td class="textRight">${((item.taxable || 0) * 1.18).toFixed(2)}</td>
-          </tr>
-        `
-        )
-        .join('');
-
-      printWindow.document.write(`
-        <div class="textCenter">Tax Invoice<span style="float:right;">ORIGINAL / DUPLICATE / TRIPLICATE</span></div>
-        <table class="noborder">
-          <tr>
-            <td width="40%">
-              <b>Bill From:-</b><br>
-              My Company Name<br>
-              My Company Address<br>
-              State Code & Name: 29 KARNATAKA<br>
-              GSTIN No: XXXXXXXXXXXXXX<br>
-              PAN No: XXXXXXXX<br>
-            </td>
-            <td width="40%">
-              <b>Ship To:-</b><br>
-              ${bill.customer.name || ''}<br>
-              ${bill.customer.address || ''}<br>
-              State Code & Name: 29 KARNATAKA<br>
-              Phone: ${bill.customer.phone || ''}<br>
-            </td>
-            <td width="20%">
-              Invoice number: ${bill.orderId}<br>
-              Invoice Date: ${new Date(bill.date).toLocaleDateString()}<br>
-            </td>
-          </tr>
-        </table>
-
-        <table>
-          <tr>
-            <th>S No.</th>
-            <th>SkuCode</th>
-            <th>Item Name</th>
-            <th>HsnCode</th>
-            <th>Batch Number</th>
-            <th>UPC</th>
-            <th>Qty Cases</th>
-            <th>Qty Units</th>
-            <th>Total Qty</th>
-            <th>Free</th>
-            <th>MRP</th>
-            <th>Rate</th>
-            <th>Gross Amt</th>
-            <th>Scheme %</th>
-            <th>Scheme Amt</th>
-            <th>CD% (Amt)</th>
-            <th>Taxable Amount</th>
-            <th>CGST % (Amt)</th>
-            <th>U/SGST % (Amt)</th>
-            <th>IGST % (Amt)</th>
-            <th>Total Amount</th>
-          </tr>
-          ${itemsHTML}
-        </table>
-
-        <p><b>Net Receivable Amount:</b> ₹${bill.finalTotal.toFixed(2)}</p>
-        <hr/>
-      `);
-    });
-
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bills Report');
+    XLSX.writeFile(wb, 'Bills_Report.xlsx');
   };
 
   return (
-    <div className="w-screen h-screen overflow-auto p- bg-gray-50">
-      {/* Date Range Dropdown UI + Filter button */}
+    <div className="w-screen h-screen overflow-auto p-4 bg-gray-50">
+      {/* Date Range Dropdown UI + Filter button + Excel Download */}
       <div className="relative inline-flex items-center gap-2 mb-4">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
@@ -274,12 +178,19 @@ export default function CustomersPage() {
           📅 {rangeLabel} ▼
         </button>
 
-        {/* Filter Button */}
         <button
           onClick={applyFilter}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
           Update
+        </button>
+
+        {/* Download Excel Button */}
+        <button
+          onClick={handleExportExcel}
+          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+        >
+          ⬇ Download Excel
         </button>
 
         {showDropdown && (
@@ -298,10 +209,12 @@ export default function CustomersPage() {
                   {range.label}
                 </button>
               ))}
-              <div className="px-2 py-1 bg-blue-100 rounded mt-auto font-semibold">Custom Range</div>
+              <div className="px-2 py-1 bg-blue-100 rounded mt-auto font-semibold">
+                Custom Range
+              </div>
             </div>
 
-           
+            {/* Right side: Custom range inputs */}
             <div className="p-2 flex flex-col gap-2 flex-grow">
               <label>
                 Start Date:
@@ -331,7 +244,7 @@ export default function CustomersPage() {
       </div>
 
       <PageHeader title="Customers" description="View and manage your customer orders.">
-        <Button onClick={handlePrint} variant="secondary" className="mr-2">
+        <Button variant="secondary" className="mr-2">
           Print Selected
         </Button>
         <Button>
@@ -375,12 +288,18 @@ export default function CustomersPage() {
                         </Avatar>
                         <div>
                           <div>{bill.customer.name}</div>
-                          <div className="text-muted-foreground text-sm">{bill.customer.phone}</div>
+                          <div className="text-muted-foreground text-sm">
+                            {bill.customer.phone}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">{bill.items.length}</TableCell>
-                    <TableCell className="hidden md:table-cell">{bill.finalTotal.toFixed(2)}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {bill.items.length}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {bill.finalTotal.toFixed(2)}
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">
                       {new Date(bill.date).toLocaleDateString()}
                     </TableCell>
