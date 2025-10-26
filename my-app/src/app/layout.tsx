@@ -1,3 +1,7 @@
+
+'use client';
+
+import { usePathname } from 'next/navigation';
 import type { Metadata } from 'next';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
@@ -6,8 +10,10 @@ import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'KnacPro Billing Software',
+// This is a workaround to make metadata work in a client component.
+// In a real app, you'd want to handle this more gracefully, perhaps with route groups.
+const metadata: Metadata = {
+  title: 'KnacPro',
   description: 'Modern Billing Software',
 };
 
@@ -16,9 +22,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <title>{String(metadata.title)}</title>
+        <meta name="description" content={String(metadata.description)} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -31,17 +42,21 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased min-h-screen')}>
-        <SidebarProvider>
-          <div className="flex min-h-screen">
-            <AppSidebar />
-            <div className="flex flex-col flex-1">
-              <AppHeader />
-              <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-background">
-                {children}
-              </main>
+        {isLoginPage ? (
+          <main>{children}</main>
+        ) : (
+          <SidebarProvider>
+            <div className="flex min-h-screen">
+              <AppSidebar />
+              <div className="flex flex-col flex-1">
+                <AppHeader />
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-background">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-        </SidebarProvider>
+          </SidebarProvider>
+        )}
         <Toaster />
       </body>
     </html>
