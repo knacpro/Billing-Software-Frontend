@@ -1,17 +1,14 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
 import type { Metadata } from 'next';
-import { cn } from '@/lib/utils';
+
 import { Toaster } from '@/components/ui/toaster';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
 import './globals.css';
 
-// This is a workaround to make metadata work in a client component.
-// In a real app, you'd want to handle this more gracefully, perhaps with route groups.
 const metadata: Metadata = {
   title: 'KnacPro',
   description: 'Modern Billing Software',
@@ -41,7 +38,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={cn('font-body antialiased min-h-screen')}>
+      <body className="font-body antialiased min-h-screen">
         {isLoginPage ? (
           <main>{children}</main>
         ) : (
